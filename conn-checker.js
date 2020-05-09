@@ -3,8 +3,8 @@ const fs = require("fs");
 const oracledb = require("oracledb");
 const dbConfig = require("./dbconfig.js");
 
-const msWait = 1000;
-const numCycles = 3;
+var msWait = 1000;
+var numCycles = 10 ^ 1000;
 
 var slogfile = "/temp/conn-checker001.log";
 
@@ -36,8 +36,30 @@ const delay = (ms) =>
     setTimeout(() => resolve(`Done! ${ms}`), ms);
   });
 
+var nameIndex = (t1) => {
+  return process.argv.indexOf(t1);
+};
+
+var nameValue = (nameIndex) => {
+  return process.argv[nameIndex + 1];
+};
+
 async function run() {
   let connection, result;
+
+  if (nameIndex("-host") > -1 && nameIndex("-service") > -1) {
+    slogfile = "/temp/" + nameValue(nameIndex("-host")) + ".log";
+    dbConfig.connectString =
+      nameValue(nameIndex("-host")) + "/" + nameValue(nameIndex("-service"));
+  }
+
+  if (nameIndex("-cycles") > -1) {
+    numCycles = nameValue(nameIndex("-cycles"));
+  }
+
+  if (nameIndex("-mswait") > -1) {
+    msWait = nameValue(nameIndex("-mswait"));
+  }
 
   for (let i = 1; i <= numCycles; i++) {
     try {
